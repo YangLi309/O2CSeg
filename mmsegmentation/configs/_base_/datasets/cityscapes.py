@@ -1,6 +1,6 @@
 # dataset settings
 dataset_type = 'CityscapesDataset'
-data_root = '/home/aslab/code/yang_code/semantic_segmentation/data/Cityscapes/'
+data_root = './data/Cityscapes/'
 crop_size = (512, 1024)
 train_pipeline = [
     dict(type='LoadImageFromFile'),

@@ -173,3 +173,4 @@ vis_dirs/
 pretrain/
 checkpoints/
 data/
+slurm_scripts/

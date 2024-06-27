@@ -6,6 +6,7 @@ export BUILD_WITH_CUDA=True
 #conda activate O2CSeg
 conda install -y pytorch torchvision pytorch-cuda=12.1 -c pytorch -c nvidia
 pip install ftfy wandb optuna seaborn --quiet
+pip install albumentations==1.3.1 --quiet
 pip install openmim --quiet
 mim install -y mmengine
 mim install -y "mmcv>=2.0.0rc4, <2.2.0."

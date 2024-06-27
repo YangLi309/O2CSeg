@@ -8,7 +8,7 @@ from mmseg.registry import MODELS
 from mmseg.structures import SegDataSample
 from mmseg.utils import SampleList
 from .fcn_head import FCNHead
-import torch.nn as nn
+
 
 @MODELS.register_module()
 class STDCHead(FCNHead):
@@ -34,8 +34,6 @@ class STDCHead(FCNHead):
             torch.tensor([[6. / 10], [3. / 10], [1. / 10]],
                          dtype=torch.float32).reshape(1, 3, 1, 1),
             requires_grad=False)
-        if self.kd_training:
-            self.boundary_label_module = nn.Identity()
 
     def loss_by_feat(self, seg_logits: Tensor,
                      batch_data_samples: SampleList) -> dict:
@@ -89,10 +87,6 @@ class STDCHead(FCNHead):
             boudary_targets_pyramid <= self.boundary_threshold] = 0
 
         seg_labels = boudary_targets_pyramid.long()
-
-        if self.kd_training:
-            boundary_labels = self.boundary_label_module(seg_labels)
-
         batch_sample_list = []
         for label in seg_labels:
             seg_data_sample = SegDataSample()

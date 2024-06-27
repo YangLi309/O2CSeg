@@ -687,7 +687,8 @@ class SideAdapterCLIPHead(BaseDecodeHead):
         #     print('got the img')
         filename_without_extension = Path(img_path).stem
         #
-        shutil.copyfile(img_path, os.path.join(self.vis_dir, Path(img_path).name))
+        if self.visualize_results:
+            shutil.copyfile(img_path, os.path.join(self.vis_dir, Path(img_path).name))
         #
         #     mean_seg_logits_before_refinement= torch.mean(seg_logits, dim=1)
         #
@@ -719,53 +720,54 @@ class SideAdapterCLIPHead(BaseDecodeHead):
         conf_diff = top_2_logits.values[:, 0, :, :] - top_2_logits.values[:, 1, :, :]
         conf_reweight = torch.softmax(conf_diff.flatten(1, 2), dim=1)
         conf_reweight_matrix = conf_reweight.unflatten(1, conf_diff.shape[-2:]).squeeze().cpu().numpy()
-        plt.figure(figsize=(10, 10))
-        plt.imshow(conf_reweight_matrix, cmap='viridis', interpolation='nearest',
-                   alpha=0.9)
-        plt.axis('off')
-        plt.savefig(os.path.join(self.vis_dir, f"{filename_without_extension}_conf_weight.png"),
-                    bbox_inches="tight", dpi=300, pad_inches=0.0
-                    )
-        plt.clf()
-        plt.close('all')
+        if self.visualize_results:
+            plt.figure(figsize=(10, 10))
+            plt.imshow(conf_reweight_matrix, cmap='viridis', interpolation='nearest',
+                    alpha=0.9)
+            plt.axis('off')
+            plt.savefig(os.path.join(self.vis_dir, f"{filename_without_extension}_conf_weight.png"),
+                        bbox_inches="tight", dpi=300, pad_inches=0.0
+                        )
+            plt.clf()
+            plt.close('all')
 
-        _, pseudo_label = torch.max(seg_logits, dim=1)
-        plt.figure(figsize=(10, 10))
-        # Map labels to colors
-        label_map = pseudo_label.squeeze().cpu().numpy()
-        height, width = label_map.shape
-        label_vis_img = np.zeros((height, width, 3), dtype=np.float32)
-        for label_idx in range(self.color_palette.shape[0]):
-            mask = label_map == label_idx
-            label_vis_img[mask] = self.color_palette[label_idx] / 255.0  # Normalize colors to [0, 1]
-        plt.imshow(label_vis_img)
-        plt.axis('off')  # Hide axis
-        plt.savefig(os.path.join(self.vis_dir, f"{filename_without_extension}_pseudo_label.png"),
-                    bbox_inches="tight", dpi=300, pad_inches=0.0
-                    )
-        plt.clf()
-        plt.close('all')
+            _, pseudo_label = torch.max(seg_logits, dim=1)
+            plt.figure(figsize=(10, 10))
+            # Map labels to colors
+            label_map = pseudo_label.squeeze().cpu().numpy()
+            height, width = label_map.shape
+            label_vis_img = np.zeros((height, width, 3), dtype=np.float32)
+            for label_idx in range(self.color_palette.shape[0]):
+                mask = label_map == label_idx
+                label_vis_img[mask] = self.color_palette[label_idx] / 255.0  # Normalize colors to [0, 1]
+            plt.imshow(label_vis_img)
+            plt.axis('off')  # Hide axis
+            plt.savefig(os.path.join(self.vis_dir, f"{filename_without_extension}_pseudo_label.png"),
+                        bbox_inches="tight", dpi=300, pad_inches=0.0
+                        )
+            plt.clf()
+            plt.close('all')
 
-        seg_map_path = batch_img_metas[0]['seg_map_path']
-        gt = np.asarray(Image.open(seg_map_path), dtype=np.uint8)
-        height, width = gt.shape
-        gt_vis_img = np.zeros((height, width, 3), dtype=np.float32)
-        for label_idx in range(0, self.color_palette.shape[0]):
-            mask = gt == label_idx
-            # gt_vis_img[mask] = self.color_palette[label_idx - 1] / 255.0  # Normalize colors to [0, 1]
-            gt_vis_img[mask] = self.color_palette[label_idx] / 255.0  # Normalize colors to [0, 1]
-        # ignored pixels
-        mask = gt == 255
-        gt_vis_img[mask] = np.asarray([255.0, 255.0, 255.0]) / 255.0
-        mask = gt == 254
-        gt_vis_img[mask] = np.asarray([255.0, 255.0, 255.0]) / 255.0
-        plt.imshow(gt_vis_img)
-        plt.axis('off')  # Hide axis
-        plt.savefig(os.path.join(self.vis_dir, f"{filename_without_extension}_gt.png"),
-                    bbox_inches="tight", dpi=300, pad_inches=0.0
-                    )
-        plt.clf()
-        plt.close('all')
+            seg_map_path = batch_img_metas[0]['seg_map_path']
+            gt = np.asarray(Image.open(seg_map_path), dtype=np.uint8)
+            height, width = gt.shape
+            gt_vis_img = np.zeros((height, width, 3), dtype=np.float32)
+            for label_idx in range(0, self.color_palette.shape[0]):
+                mask = gt == label_idx
+                # gt_vis_img[mask] = self.color_palette[label_idx - 1] / 255.0  # Normalize colors to [0, 1]
+                gt_vis_img[mask] = self.color_palette[label_idx] / 255.0  # Normalize colors to [0, 1]
+            # ignored pixels
+            mask = gt == 255
+            gt_vis_img[mask] = np.asarray([255.0, 255.0, 255.0]) / 255.0
+            mask = gt == 254
+            gt_vis_img[mask] = np.asarray([255.0, 255.0, 255.0]) / 255.0
+            plt.imshow(gt_vis_img)
+            plt.axis('off')  # Hide axis
+            plt.savefig(os.path.join(self.vis_dir, f"{filename_without_extension}_gt.png"),
+                        bbox_inches="tight", dpi=300, pad_inches=0.0
+                        )
+            plt.clf()
+            plt.close('all')
         #
         #     plt.figure(figsize=(10, 10))
         #     plt.imshow(mean_seg_logits_before_refinement.squeeze().cpu().numpy(), cmap='viridis', interpolation='nearest',
